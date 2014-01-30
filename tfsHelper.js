@@ -83,8 +83,8 @@ function parse() {
 	var items = {};
 	var varName = [];
 	var varValue = [];
-    var content = "";
-    var count = 0;
+    	var content = "";
+    	var count = 0;
 	$('.test-step-parameter-name').each(function() {
 		if($.inArray($(this).text(),varName) === -1) {
             varName.push($(this).text());
