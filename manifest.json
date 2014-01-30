@@ -1,5 +1,5 @@
 {
-  "name": "TFS Utilities",
+  "name": "TFS Helper",
   "version": "0",
   "description": "A number of TFS helper utilities providing enhanced usability of test case tools",
   "manifest_version": 2,
@@ -11,6 +11,6 @@
   "content_scripts": [ {
     "css": ["diff.css"],
     "js": [ "jquery-2.1.0.min.js", "jquery.watch.min.js", "diff_match_patch.js", "jquery.pretty-text-diff.min.js", "tfsHelper.js" ],
-    "matches": [ "http://*/tfs/*/*", "https://*/tfs/*/*"]
+    "matches": [ "http://*/tfs/*/*", "https://*/tfs/*/*", "http://*/*", "https://*/*"]
   }]
 }

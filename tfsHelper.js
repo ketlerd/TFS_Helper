@@ -1,4 +1,21 @@
 /*
+    This file is part of TFS Helper.
+
+    TFS Helper is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Foobar is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
  * tfsHelper.js
  *
  * Chrome extension to provide a number of added functionalities to TFS web interface
@@ -35,11 +52,12 @@ if(pageTitle === "Microsoft Test Runner") {
 //Check if the main frame is the active page
 //and if so, check for the existence of the table dropdowns
 //and parse the tables
-if(pageTitle.indexOf("Microsoft Team Foundation Server") != -1){
+if(pageTitle.indexOf("Microsoft Team Foundation Server") != -1 || pageTitle.indexOf("Visual Studio Online") != -1){
     setInterval(function() { 
         if($('tfs-collapsible-content') !== null) {
             findHtml();
-            
+            findParams();
+
             $('.seen td:nth-child(3):not(.original)').each(function() {    
                 replaceHtml($(this));
                 $(this).addClass('original');
@@ -50,19 +68,44 @@ if(pageTitle.indexOf("Microsoft Team Foundation Server") != -1){
                 $(this).addClass('changed');
             });
 
+            $('.seenParam td:nth-child(3):not(.original)').each(function() {    
+                replaceHtml($(this));
+                $(this).addClass('original');
+            });
+
+            $('.seenParam td:nth-child(2):not(.changed)').each(function() {
+                replaceHtml($(this));
+                $(this).addClass('changed');
+            });
+
+
             $('.seen').each(function() {
-            if(!$(this).hasClass('diffed')) {
-                $(this).parent().append("<tr>/tr>")
-                $(this).append('<td class="diff" style="display:none;"></td>');
-                $(this).prettyTextDiff({
-                    cleanup: 'true'
-                });
-                $(this).addClass('diffed');
+                if(!$(this).hasClass('diffed')) {
+                    $(this).parent().append("<tr>/tr>")
+                    $(this).append('<td class="diff" style="display:none;"></td>');
+                    $(this).prettyTextDiff({
+                        cleanup: 'true'
+                    });
+                    $(this).addClass('diffed');
+            
+                    $(this).next().html("<td colspan='3' class='diffResult'>" + $(this).children('.diff').html() + "</td>");
+                }
+            });
+
+            $('.seenParam').each(function() {
+                if(!$(this).hasClass('diffed')) {
+                    $(this).parent().append("<tr>/tr>")
+                    $(this).append('<td class="diff" style="display:none;"></td>');
+                    $(this).prettyTextDiff({
+                        cleanup: 'true'
+                    });
+                    $(this).addClass('diffed');
      
-                $(this).next().html("<td colspan='3' class='diffResult'>" + $(this).children('.diff').html() + "</td>");
-            }
-        });
+                    $(this).next().html("<td colspan='3' class='diffResult'>" + $(this).children('.diff').html() + "</td>");
+                }
+            });
         }
+
 
     }, 1000);
 }
@@ -113,38 +156,58 @@ function parse() {
 /*
  * findHtml
  *
- * Function to locate and mark the test step trs
+ * Function to locate and mark the test steps to be processed
  *
  * @param void
  * @return void
  */
 function findHtml() {
-	$('.detail-list td:not(.seen)').each(function() {
+    $('.detail-list td:not(.seen)').each(function() {
 
-    	if($(this).text() === 'Steps') {
-       		found = 1;
-       		$(this).parent().addClass("seen") 
-       	}
-	});
+        if($(this).text() === 'Steps') {
+            found = 1;
+            $(this).parent().addClass("seen") 
+        }
+    });
 
-	found = 0;
+    found = 0;
+}
+
+/*
+ * findHtml
+ *
+ * Function to locate and mark the parameters to be processed
+ *
+ * @param void
+ * @return void
+ */
+function findParams() {
+    $('.detail-list td:not(.seen)').each(function() {
+
+        if($(this).text() === 'Local Data Source') {
+            found = 1;
+            $(this).parent().addClass("seenParam") 
+        }
+    });
+
+    found = 0;
 }
 
 
 /*
- * replaceHtml
+ * findHtml
  *
- * Function to replace the steps with their htmldecoded content
+ * Function to convert test steps to htmldecoded entries
  *
- * @param int -- the table to parse from
+ * @param void
  * @return void
  */
 function replaceHtml(item) {
-	if(item.hasClass('processed'))
-		return;
+    if(item.hasClass('processed'))
+        return;
 
-	item.html($('<div/>').html(item.html()).text());
-	item.addClass('processed');
+    item.html($('<div/>').html(item.html()).text());
+    item.addClass('processed');
 }
 
 
