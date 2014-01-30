@@ -5,7 +5,7 @@
  *
  * 1. Converting test case audit logs to readable html in-place
  * 2. Replacing iteration params with their actual params
- * 3. Inseting a diff of test step audit logs
+ * 3. Inserting a diff of test step audit logs
  */
 var title = "";
 var found = 0;
@@ -13,6 +13,8 @@ var ht = [];
 var pageTitle = document.title;
 
 
+//Check if the test runner window is the active page
+//and if so, check for iteration changes, and parse parameters
 if(pageTitle === "Microsoft Test Runner") {
     setInterval(function() { 
         if(title === null || title === '') {
@@ -30,12 +32,14 @@ if(pageTitle === "Microsoft Test Runner") {
 }
 
 
+//Check if the main frame is the active page
+//and if so, check for the existence of the table dropdowns
+//and parse the tables
 if(pageTitle.indexOf("Microsoft Team Foundation Server") != -1){
     setInterval(function() { 
         if($('tfs-collapsible-content') !== null) {
             findHtml();
-            findParams();
-
+            
             $('.seen td:nth-child(3):not(.original)').each(function() {    
                 replaceHtml($(this));
                 $(this).addClass('original');
@@ -46,47 +50,34 @@ if(pageTitle.indexOf("Microsoft Team Foundation Server") != -1){
                 $(this).addClass('changed');
             });
 
-            $('.seenParam td:nth-child(3):not(.original)').each(function() {    
-                replaceHtml($(this));
-                $(this).addClass('original');
-            });
-
-            $('.seenParam td:nth-child(2):not(.changed)').each(function() {
-                replaceHtml($(this));
-                $(this).addClass('changed');
-            });
-
-
             $('.seen').each(function() {
-                if(!$(this).hasClass('diffed')) {
-                    $(this).parent().append("<tr>/tr>")
-                    $(this).append('<td class="diff" style="display:none;"></td>');
-                    $(this).prettyTextDiff({
-                        cleanup: 'true'
-                    });
-                    $(this).addClass('diffed');
-            
-                    $(this).next().html("<td colspan='3' class='diffResult'>" + $(this).children('.diff').html() + "</td>");
-                }
-            });
-
-            $('.seenParam').each(function() {
-                if(!$(this).hasClass('diffed')) {
-                    $(this).parent().append("<tr>/tr>")
-                    $(this).append('<td class="diff" style="display:none;"></td>');
-                    $(this).prettyTextDiff({
-                        cleanup: 'true'
-                    });
-                    $(this).addClass('diffed');
+            if(!$(this).hasClass('diffed')) {
+                $(this).parent().append("<tr>/tr>")
+                $(this).append('<td class="diff" style="display:none;"></td>');
+                $(this).prettyTextDiff({
+                    cleanup: 'true'
+                });
+                $(this).addClass('diffed');
      
-                    $(this).next().html("<td colspan='3' class='diffResult'>" + $(this).children('.diff').html() + "</td>");
-                }
-            });
+                $(this).next().html("<td colspan='3' class='diffResult'>" + $(this).children('.diff').html() + "</td>");
+            }
+        });
         }
 
     }, 1000);
 }
 
+
+/*
+ * Parse
+ *
+ * Function to parse out the parameters into:
+ * varName -- names of the parameters
+ * varValue -- the actual value
+ *
+ * @param void
+ * @return void
+ */
 function parse() {
 	var arrLength = 0;
 	var items = {};
@@ -118,6 +109,15 @@ function parse() {
     
 }
 
+
+/*
+ * findHtml
+ *
+ * Function to locate and mark the test step trs
+ *
+ * @param void
+ * @return void
+ */
 function findHtml() {
 	$('.detail-list td:not(.seen)').each(function() {
 
@@ -130,19 +130,15 @@ function findHtml() {
 	found = 0;
 }
 
-function findParams() {
-    $('.detail-list td:not(.seen)').each(function() {
 
-        if($(this).text() === 'Local Data Source') {
-            found = 1;
-            $(this).parent().addClass("seenParam") 
-        }
-    });
-
-    found = 0;
-}
-
-
+/*
+ * replaceHtml
+ *
+ * Function to replace the steps with their htmldecoded content
+ *
+ * @param int -- the table to parse from
+ * @return void
+ */
 function replaceHtml(item) {
 	if(item.hasClass('processed'))
 		return;
@@ -151,6 +147,15 @@ function replaceHtml(item) {
 	item.addClass('processed');
 }
 
+
+/*
+ * replaceAll
+ *
+ * Function to replace the step tds with the htmldecoded content
+ *
+ * @param str,str,boolean -- source, replacement, ignore case boolean
+ * @return void
+ */
 String.prototype.replaceAll = function(str1, str2, ignore)
 {
    return this.replace(new RegExp(str1.replace(/([\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, function(c){return "\\" + c;}), "g"+(ignore?"i":"")), str2);
